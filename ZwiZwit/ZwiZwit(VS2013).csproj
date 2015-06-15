@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppUtil.cs" />
-    <Compile Include="JsonParser.cs" />
+    <Compile Include="Library\JsonParser.cs" />
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -91,7 +91,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="TweetCache.cs" />
-    <Compile Include="TwitterAccess.cs" />
+    <Compile Include="Library\TwitterAccess.cs" />
+    <Compile Include="TwitterAccessExtend.cs" />
     <Compile Include="Win32Api.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -9,7 +9,7 @@ using System.IO;
 using System.Xml;
 using System.Threading;
 
-namespace ZwiZwit
+namespace Library
 {
     public class TwitterAccess
     {
@@ -497,31 +497,31 @@ namespace ZwiZwit
                     attr.Add(node2.Name, node2.Value);
                     //System.Diagnostics.Debug.WriteLine(node2.Name + "="+ node2.InnerText);
                 }
-                var userNode = node.Eneities["user"];
-                //var retweetedStatusNode = node.Eneities["retweeted_status"];
+                var userNode = node.Entities["user"];
+                //var retweetedStatusNode = node.Entities["retweeted_status"];
                 //if (retweetedStatusNode != null)
                 //{
-                //    foreach (var node2 in node.Eneities)
+                //    foreach (var node2 in node.Entities)
                 //    {
                 //        attr.Add("retweeted_status." + node2.Key, node2.Value.Value);
                 //        //System.Diagnostics.Debug.WriteLine("retweeted_status." + node2.Name + "=" + node2.InnerText);
                 //    }
                 //}
 
-                string user = userNode.Eneities["name"].Value;
-                string screen_name = userNode.Eneities["screen_name"].Value;
-                string user_id = userNode.Eneities["id"].Value;
-                string iconUrl = userNode.Eneities["profile_image_url"].Value;
-                string user_url = userNode.Eneities["url"].Value;
+                string user = userNode.Entities["name"].Value;
+                string screen_name = userNode.Entities["screen_name"].Value;
+                string user_id = userNode.Entities["id"].Value;
+                string iconUrl = userNode.Entities["profile_image_url"].Value;
+                string user_url = userNode.Entities["url"].Value;
 
-                string id = node.Eneities["id"].Value;
-                string retweeted = node.Eneities["retweeted"].Value;
-                string in_reply_to_status_id = node.Eneities["in_reply_to_status_id"].Value;
-                string in_reply_to_user_id = node.Eneities["in_reply_to_user_id"].Value;
-                string source = node.Eneities["source"].Value;
+                string id = node.Entities["id"].Value;
+                string retweeted = node.Entities["retweeted"].Value;
+                string in_reply_to_status_id = node.Entities["in_reply_to_status_id"].Value;
+                string in_reply_to_user_id = node.Entities["in_reply_to_user_id"].Value;
+                string source = node.Entities["source"].Value;
 
-                string message = node.Eneities["text"].Value;
-                //XmlNode textNode = node.Eneities["text"].Value;
+                string message = node.Entities["text"].Value;
+                //XmlNode textNode = node.Entities["text"].Value;
                 //if (textNode != null)
                 //{
                 //    message = textNode.Value;
@@ -540,7 +540,7 @@ namespace ZwiZwit
                 //}
                 message = DecodeHtmlEntity(message);
 
-                string created_at = node.Eneities["created_at"].Value;
+                string created_at = node.Entities["created_at"].Value;
 
                 DateTime createdDate = ParseDate(created_at);
 
@@ -566,10 +566,10 @@ namespace ZwiZwit
                 //    item.retweeted_status_id = long.Parse(attr["retweeted_status.id"]);
                 //}
 
-                if (node.Eneities.ContainsKey("retweeted_status"))
+                if (node.Entities.ContainsKey("retweeted_status"))
                 {
                     item.retweeted_status = new StatusInfo();
-                    string text2 = node.Eneities["retweeted_status"].Eneities["text"].Value;
+                    string text2 = node.Entities["retweeted_status"].Entities["text"].Value;
                     text2 = DecodeHtmlEntity(text2);
                     item.retweeted_status.text = text2;
 
@@ -582,10 +582,10 @@ namespace ZwiZwit
                     //}
 
                     //item.retweeted_status = true;
-                    item.retweeted_status_id = long.Parse(node.Eneities["retweeted_status"].Eneities["id"].Value);
+                    item.retweeted_status_id = long.Parse(node.Entities["retweeted_status"].Entities["id"].Value);
                     item.retweeted_user = new UserInfo();
-                    item.retweeted_user.name = node.Eneities["retweeted_status"].Eneities["user"].Eneities["name"].Value;
-                    item.retweeted_user.screen_name = node.Eneities["retweeted_status"].Eneities["user"].Eneities["screen_name"].Value;
+                    item.retweeted_user.name = node.Entities["retweeted_status"].Entities["user"].Entities["name"].Value;
+                    item.retweeted_user.screen_name = node.Entities["retweeted_status"].Entities["user"].Entities["screen_name"].Value;
 
                     string retweetHead = "RT @" + item.retweeted_user.screen_name + ": ";
                     if (item.text.StartsWith(retweetHead))
@@ -953,10 +953,10 @@ namespace ZwiZwit
             //info.url = node["url"].InnerText;
             //results["user"] = info;
 
-            info.id = long.Parse(json.Eneities["id"].Value);
-            info.name = json.Eneities["name"].Value;
-            info.screen_name = json.Eneities["screen_name"].Value;
-            info.url = json.Eneities["url"].Value;
+            info.id = long.Parse(json.Entities["id"].Value);
+            info.name = json.Entities["name"].Value;
+            info.screen_name = json.Entities["screen_name"].Value;
+            info.url = json.Entities["url"].Value;
             results["user"] = info;
         }
 

@@ -10,6 +10,7 @@ using System.Net;
 using System.Media;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Library;
 
 namespace ZwiZwit
 {
@@ -17,7 +18,7 @@ namespace ZwiZwit
     {
         private readonly string INI_PATH = AppUtil.IniPath;
 
-        private TwitterAccess twitterObj = new TwitterAccess();
+        private TwitterAccessExtend twitterObj = new TwitterAccessExtend();
         private TweetCache tweetCache = new TweetCache();
         private Timer refreshTimer = new Timer();
 
@@ -90,6 +91,8 @@ namespace ZwiZwit
             {
                 ShowInTaskbar = false;
             }
+
+            timeLineList.SmallImageList = twitterObj.UserIconList;
 
             refreshTimer.Tick += new EventHandler(OnTimer);
             refreshTimer.Interval = (int)Win32Api.GetPrivateProfileInt("TIMELINE", "reload_interval", 600, INI_PATH) * 1000;
@@ -193,6 +196,8 @@ namespace ZwiZwit
             return true;
         }
 
+        bool errorDisplayFlag;
+
         protected void UpdateList()
         {
             try
@@ -215,9 +220,14 @@ namespace ZwiZwit
                 }
                 catch (TwitterAccess.TwitterException te)
                 {
-                    AppUtil.ShowError("タイムラインの取得に失敗しました。", te);
+                    if (!errorDisplayFlag)
+                    {
+                        errorDisplayFlag = true;
+                        AppUtil.ShowError("タイムラインの取得に失敗しました。", te);
+                    }
                     return;
                 }
+                errorDisplayFlag = false;
 
                 List<TwitterAccess.StatusInfo> listItem1 = new List<TwitterAccess.StatusInfo>();
                 try
@@ -306,6 +316,13 @@ namespace ZwiZwit
                     {
                         item.BackColor = Color.Orange;
                     }
+
+                    Image image = twitterObj.LoadIcon(statusItem.profile_image_url);
+                    if (!item.ImageList.Images.ContainsKey(statusItem.profile_image_url))
+                    {
+                        item.ImageList.Images.Add(statusItem.profile_image_url, image);
+                    }
+                    item.ImageKey = statusItem.profile_image_url;
                 }
 
                 int max_items = (int)Win32Api.GetPrivateProfileInt("TIMELINE", "max_items", 30000, INI_PATH);

@@ -5,7 +5,9 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace ZwiZwit
+/// zlib License
+/// Copyright (c) 2015 Betarium
+namespace Library
 {
     public class JsonParser
     {
@@ -28,7 +30,7 @@ namespace ZwiZwit
             public string Value { get; set; }
             public JsonType Type { get; set; }
             public List<JsonEntity> Items { get; protected set; }
-            public Dictionary<string, JsonEntity> Eneities { get; protected set; }
+            public Dictionary<string, JsonEntity> Entities { get; protected set; }
 
             public JsonEntity()
             {
@@ -36,7 +38,7 @@ namespace ZwiZwit
                 Name = "";
                 Value = null;
                 Items = new List<JsonEntity>();
-                Eneities = new Dictionary<string, JsonEntity>();
+                Entities = new Dictionary<string, JsonEntity>();
             }
 
             public JsonEntity(JsonType type)
@@ -69,11 +71,20 @@ namespace ZwiZwit
             public void Add(string key, JsonEntity entity)
             {
                 Items.Add(entity);
-                Eneities.Add(key, entity);
+                Entities.Add(key, entity);
             }
             public void Add(JsonEntity entity)
             {
                 Items.Add(entity);
+            }
+
+            public string GetChildText(string key)
+            {
+                if (!Entities.ContainsKey(key))
+                {
+                    return null;
+                }
+                return Entities[key].Value;
             }
         }
 
