@@ -16,7 +16,7 @@ namespace ZwiZwit
 {
     public partial class MainForm : Form
     {
-        private readonly string INI_PATH = AppUtil.IniPath;
+        private readonly string INI_PATH = Path.Combine(Application.UserAppDataPath, Application.ProductName + ".ini");
 
         private TwitterAccessExtend twitterObj = new TwitterAccessExtend();
         private TweetCache tweetCache = new TweetCache();
@@ -52,6 +52,7 @@ namespace ZwiZwit
 #if DEBUG
             //Icon = Properties.Resources.icon2;
 #endif
+            mainToolStrip.Visible = false;
 
             var iconFile = Path.Combine(Application.StartupPath, "app.ico");
             if (File.Exists(iconFile))
@@ -66,13 +67,18 @@ namespace ZwiZwit
             if (version == "")
             {
                 Win32Api.WritePrivateProfileString("COMMON", "version", Application.ProductName + " " + Application.ProductVersion, INI_PATH);
-                Win32Api.WritePrivateProfileString("TIMELINE", "reload_interval", "600", INI_PATH);
-                Win32Api.WritePrivateProfileString("TIMELINE", "get_count", "100", INI_PATH);
+                Win32Api.WritePrivateProfileString("TIMELINE", "update_interval", "600", INI_PATH);
+                Win32Api.WritePrivateProfileString("TIMELINE", "update_count", "100", INI_PATH);
                 Win32Api.WritePrivateProfileString("ACCOUNT", "oauth_token", "", INI_PATH);
                 Win32Api.WritePrivateProfileString("ACCOUNT", "oauth_token_secret", "", INI_PATH);
             }
 
-            bool trace_log = Win32Api.GetPrivateProfileInt("COMMON", "trace_log", 0, INI_PATH) != 0;
+            int trace_log_default = 0;
+#if DEBUG
+            trace_log_default = 1;
+#endif
+
+            bool trace_log = Win32Api.GetPrivateProfileInt("DEBUG", "trace_log", trace_log_default, INI_PATH) == 1;
             if (trace_log)
             {
                 AppUtil.InitTraceLog();
@@ -113,6 +119,11 @@ namespace ZwiZwit
             string oauth_token = Win32Api.GetPrivateProfileString("ACCOUNT", "oauth_token", null, INI_PATH);
             string oauth_token_secret = Win32Api.GetPrivateProfileString("ACCOUNT", "oauth_token_secret", null, INI_PATH);
 
+            if (string.IsNullOrEmpty(twitterObj.ConsumerKey) && string.IsNullOrEmpty(twitterObj.ConsumerSecret))
+            {
+                return;
+            }
+
             Login(oauth_token, oauth_token_secret);
 
             if (!twitterObj.IsAuth)
@@ -132,6 +143,14 @@ namespace ZwiZwit
             bool newLogin = false;
             if (String.IsNullOrEmpty(oauth_token) || String.IsNullOrEmpty(oauth_token_secret))
             {
+                string consumerKeyCustom = Win32Api.GetPrivateProfileString("DEBUG", "consumer_key", null, INI_PATH);
+                string consumerSecretCustom = Win32Api.GetPrivateProfileString("DEBUG", "consumer_secret", null, INI_PATH);
+                if (!string.IsNullOrEmpty(consumerKeyCustom))
+                {
+                    twitterObj.ConsumerKey = consumerKeyCustom;
+                    twitterObj.ConsumerSecret = consumerSecretCustom;
+                }
+
                 newLogin = true;
                 LoginForm form = new LoginForm();
                 form.Twitter = twitterObj;
@@ -176,6 +195,8 @@ namespace ZwiZwit
                 AppUtil.ShowError("ログインに失敗しました。");
                 return false;
             }
+
+            reloadForce = true;
 
             //Text = AppUtil.AssemblyTitle + " @" + currentUserInfo.screen_name + AppUtil.DebugTitle;
             Text = AppUtil.AssemblyTitle + " " + AppUtil.DebugTitle;
@@ -240,6 +261,17 @@ namespace ZwiZwit
                     return;
                 }
                 listItem1.AddRange(listItem2);
+
+
+                TwitterAccess.StatusInfo newReply = null;
+                foreach (var item in listItem1)
+                {
+                    if (!tweetCache.StatusHash.ContainsKey(item.id))
+                    {
+                        newReply = item;
+                        break;
+                    }
+                }
 
                 long lastId = 0;
                 List<TwitterAccess.StatusInfo> listItem = new List<TwitterAccess.StatusInfo>();
@@ -335,6 +367,11 @@ namespace ZwiZwit
                         tweetCache.RemoveTweet(statusItem);
                         timeLineList.Items.RemoveAt(timeLineList.Items.Count - 1);
                     }
+                }
+
+                if (newReply != null)
+                {
+                    trayIcon.ShowBalloonTip(30, Application.ProductName, newReply.name + "(@" + newReply.screen_name + ")\n\n" + newReply.text, ToolTipIcon.Warning);
                 }
 
                 //try
@@ -775,7 +812,7 @@ namespace ZwiZwit
             int selectedIndex = senderList.SelectedIndices[0];
             TwitterAccess.StatusInfo statusItem = (TwitterAccess.StatusInfo)senderList.Items[selectedIndex].Tag;
             string text = statusItem.text;
-            Match match = new Regex("h?ttps?:\\/\\/[^ 　]+|$").Match(text);
+            Match match = new Regex("[h]?ttp[s]?:\\/\\/[\\x21-\\x7E]+").Match(text);
             if (match.Success)
             {
                 string url = text.Substring(match.Index, match.Length);
@@ -813,6 +850,30 @@ namespace ZwiZwit
             WindowState = FormWindowState.Minimized;
             Show();
             WindowState = FormWindowState.Normal;
+        }
+
+        private void settingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SettingForm form = new SettingForm();
+            form.updateInterval.Text = Win32Api.GetPrivateProfileString("TIMELINE", "update_interval", "600", INI_PATH);
+            form.updateCount.Text = Win32Api.GetPrivateProfileString("TIMELINE", "update_count", "100", INI_PATH);
+            form.consumerKey.Text = Win32Api.GetPrivateProfileString("DEBUG", "consumer_key", null, INI_PATH);
+            form.consumerSecret.Text = Win32Api.GetPrivateProfileString("DEBUG", "consumer_secret", null, INI_PATH);
+            if (form.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            Win32Api.WritePrivateProfileString("TIMELINE", "update_interval", form.updateInterval.Text, INI_PATH);
+            Win32Api.WritePrivateProfileString("TIMELINE", "update_count", form.updateCount.Text, INI_PATH);
+            Win32Api.WritePrivateProfileString("DEBUG", "consumer_key", form.consumerKey.Text, INI_PATH);
+            Win32Api.WritePrivateProfileString("DEBUG", "consumer_secret", form.consumerSecret.Text, INI_PATH);
+        }
+
+        private void showHomeToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            string url = "https://twitter.com/" + twitterObj.CurrentUser.name;
+            Process.Start(url);
         }
 
     }
