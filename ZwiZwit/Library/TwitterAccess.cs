@@ -11,6 +11,9 @@ using System.Threading;
 
 namespace Library
 {
+    /// <summary>
+    /// https://dev.twitter.com/rest/public
+    /// </summary>
     public class TwitterAccess
     {
         public const string URL_API_SERVER = "https://api.twitter.com";
@@ -1003,6 +1006,26 @@ namespace Library
             }
         }
 
+        public void PostFavoritesCreate(long id)
+        {
+            const string METHOD = METHOD_POST;
+            const string URL = URL_API_SERVER + "/1.1/favorites/create.json";
+
+            Dictionary<string, string> requestParams = new Dictionary<string, string>();
+            requestParams.Add("id", id.ToString());
+
+            Dictionary<string, object> results = new Dictionary<string, object>();
+
+            try
+            {
+                SendRequest(METHOD, URL, requestParams, null, null);
+            }
+            catch (WebException we)
+            {
+                throw new TwitterException("favorites/create failed.", we);
+            }
+        }
+
         protected string DecodeHtmlEntity(string text)
         {
             if(text == null)
@@ -1018,6 +1041,6 @@ namespace Library
             }
             return text;
         }
-    
+
     }
 }

@@ -22,8 +22,6 @@ namespace ZwiZwit
         private TweetCache tweetCache = new TweetCache();
         private Timer refreshTimer = new Timer();
 
-        //private Dictionary<long, bool> StatusHash = new Dictionary<long, bool>();
-
         private bool reloadForce;
         private long reloadLastId;
 
@@ -62,6 +60,13 @@ namespace ZwiZwit
 
             trayIcon.Icon = Icon;
             trayIcon.Text = Application.ProductName + AppUtil.DebugTitle;
+
+            string cacheDir = Path.Combine(Application.UserAppDataPath, "~Cache");
+            if (!Directory.Exists(cacheDir))
+            {
+                Directory.CreateDirectory(cacheDir);
+            }
+            twitterObj.IconCacheDir = cacheDir;
 
             string version = Win32Api.GetPrivateProfileString("COMMON", "version", null, INI_PATH);
             if (version == "")
@@ -260,8 +265,6 @@ namespace ZwiZwit
                     AppUtil.ShowError("リプライの取得に失敗しました。", we);
                     return;
                 }
-                listItem1.AddRange(listItem2);
-
 
                 TwitterAccess.StatusInfo newReply = null;
                 foreach (var item in listItem1)
@@ -272,6 +275,9 @@ namespace ZwiZwit
                         break;
                     }
                 }
+
+                listItem1.AddRange(listItem2);
+
 
                 long lastId = 0;
                 List<TwitterAccess.StatusInfo> listItem = new List<TwitterAccess.StatusInfo>();
@@ -350,11 +356,14 @@ namespace ZwiZwit
                     }
 
                     Image image = twitterObj.LoadIcon(statusItem.profile_image_url);
-                    if (!item.ImageList.Images.ContainsKey(statusItem.profile_image_url))
+                    if (image != null)
                     {
-                        item.ImageList.Images.Add(statusItem.profile_image_url, image);
+                        if (!item.ImageList.Images.ContainsKey(statusItem.profile_image_url))
+                        {
+                            item.ImageList.Images.Add(statusItem.profile_image_url, image);
+                        }
+                        item.ImageKey = statusItem.profile_image_url;
                     }
-                    item.ImageKey = statusItem.profile_image_url;
                 }
 
                 int max_items = (int)Win32Api.GetPrivateProfileInt("TIMELINE", "max_items", 30000, INI_PATH);
@@ -852,6 +861,33 @@ namespace ZwiZwit
             WindowState = FormWindowState.Normal;
         }
 
+        private void favoriteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!twitterObj.IsAuth)
+            {
+                return;
+            }
+
+            ListView senderList = timeLineList;
+            if (senderList.SelectedIndices.Count != 1)
+            {
+                return;
+            }
+
+            int selectedIndex = senderList.SelectedIndices[0];
+            TwitterAccess.StatusInfo statusItem = (TwitterAccess.StatusInfo)senderList.Items[selectedIndex].Tag;
+
+            try
+            {
+                twitterObj.PostFavoritesCreate(statusItem.id);
+            }
+            catch (WebException we)
+            {
+                AppUtil.ShowError("お気に入りの追加に失敗しました。", we);
+                return;
+            }
+        }
+
         private void settingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SettingForm form = new SettingForm();
@@ -872,7 +908,7 @@ namespace ZwiZwit
 
         private void showHomeToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            string url = "https://twitter.com/" + twitterObj.CurrentUser.name;
+            string url = "https://twitter.com/" + twitterObj.CurrentUser.screen_name;
             Process.Start(url);
         }
 

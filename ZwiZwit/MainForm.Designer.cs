@@ -65,6 +65,7 @@
             this.trayMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.showWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.trayQuitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.favoriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.twitter公式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -279,6 +280,7 @@
             this.timelineMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.replyToolStripMenuItem,
             this.retweetToolStripMenuItem,
+            this.favoriteToolStripMenuItem,
             this.urlOpenToolStripMenuItem,
             this.openStatusToolStripMenuItem});
             this.timelineMenu.Name = "timelineMenu";
@@ -428,6 +430,13 @@
             this.trayQuitToolStripMenuItem.Text = "終了(&Q)";
             this.trayQuitToolStripMenuItem.Click += new System.EventHandler(this.trayQuitToolStripMenuItem_Click);
             // 
+            // favoriteToolStripMenuItem
+            // 
+            this.favoriteToolStripMenuItem.Name = "favoriteToolStripMenuItem";
+            this.favoriteToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.favoriteToolStripMenuItem.Text = "お気に入り(&F)";
+            this.favoriteToolStripMenuItem.Click += new System.EventHandler(this.favoriteToolStripMenuItem_Click);
+            // 
             // settingToolStripMenuItem
             // 
             this.settingToolStripMenuItem.Name = "settingToolStripMenuItem";
@@ -531,6 +540,7 @@
         private System.Windows.Forms.ToolStripMenuItem openStatusToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem reloadAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showWindowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem favoriteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem settingToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem twitter公式ToolStripMenuItem;
